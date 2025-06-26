@@ -168,10 +168,10 @@ async function _getBlogPosts(
   }
 }
 
-// Función pública con cache
+// Función pública con cache y revalidación automática
 export const getBlogPosts = unstable_cache(_getBlogPosts, ["blog-posts"], {
   tags: ["blog-posts"],
-  revalidate: 3600, // Revalidar cada hora como fallback
+  revalidate: 300, // Revalidar cada 5 minutos automáticamente
 });
 
 // Obtener un post específico por slug
