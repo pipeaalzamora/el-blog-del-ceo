@@ -1,6 +1,7 @@
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 import { BlogPost, NotionPage } from "./types";
+import { unstable_cache } from "next/cache";
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -95,8 +96,8 @@ function notionPageToBlogPost(page: NotionPage, content: string): BlogPost {
   };
 }
 
-// Obtener todos los posts del blog
-export async function getBlogPosts(
+// Función interna para obtener posts (sin cache)
+async function _getBlogPosts(
   category?: "personal" | "startup"
 ): Promise<BlogPost[]> {
   try {
@@ -167,13 +168,19 @@ export async function getBlogPosts(
   }
 }
 
+// Función pública con cache
+export const getBlogPosts = unstable_cache(_getBlogPosts, ["blog-posts"], {
+  tags: ["blog-posts"],
+  revalidate: 3600, // Revalidar cada hora como fallback
+});
+
 // Obtener un post específico por slug
 export async function getBlogPostBySlug(
   slug: string
 ): Promise<BlogPost | null> {
   try {
     const posts = await getBlogPosts();
-    return posts.find((post) => post.slug === slug) || null;
+    return posts.find((post: BlogPost) => post.slug === slug) || null;
   } catch (error) {
     console.error("Error obteniendo post:", error);
     return null;
@@ -184,7 +191,7 @@ export async function getBlogPostBySlug(
 export async function getFeaturedPosts(): Promise<BlogPost[]> {
   try {
     const posts = await getBlogPosts();
-    return posts.filter((post) => post.featured).slice(0, 3);
+    return posts.filter((post: BlogPost) => post.featured).slice(0, 3);
   } catch (error) {
     console.error("Error obteniendo posts destacados:", error);
     return [];
