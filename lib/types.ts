@@ -7,7 +7,7 @@ export interface BlogPost {
   publishedAt: string;
   updatedAt: string;
   author: string;
-  category: "personal" | "electric-automatic";
+  category: "personal" | "startup";
   tags: string[];
   featured: boolean;
   coverImage?: string;

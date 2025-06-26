@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,13 +18,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "El Blog del CEO - Reflexiones personales y empresariales",
   description:
-    "Blog personal y empresarial con reflexiones sobre liderazgo, innovación y Electric Automatic Chile.",
+    "Blog personal y empresarial con reflexiones sobre liderazgo, innovación y Electricautomaticchile.",
   keywords: [
     "blog",
     "CEO",
     "liderazgo",
     "innovación",
-    "Electric Automatic Chile",
+    "Electricautomaticchile",
     "emprendimiento",
   ],
   authors: [{ name: "CEO" }],
@@ -42,13 +43,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
       >
-        <Navigation />
-        <main className="flex-grow">{children}</main>
-        <Footer />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Navigation />
+          <main className="flex-grow">{children}</main>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

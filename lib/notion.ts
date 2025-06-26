@@ -63,8 +63,11 @@ function notionPageToBlogPost(page: NotionPage, content: string): BlogPost {
     ) || "CEO";
 
   // Calcular tiempo de lectura estimado (250 palabras por minuto)
-  const wordCount = content.split(/\s+/).length;
-  const readingTime = Math.ceil(wordCount / 250);
+  const safeContent = content || "";
+  const wordCount = safeContent
+    .split(/\s+/)
+    .filter((word) => word.length > 0).length;
+  const readingTime = Math.max(1, Math.ceil(wordCount / 250));
 
   // Obtener imagen de portada
   let coverImage = "";
@@ -84,8 +87,7 @@ function notionPageToBlogPost(page: NotionPage, content: string): BlogPost {
     publishedAt: page.created_time,
     updatedAt: page.last_edited_time,
     author,
-    category:
-      category === "Electric Automatic" ? "electric-automatic" : "personal",
+    category: category === "Startup" ? "startup" : "personal",
     tags,
     featured,
     coverImage,
@@ -95,7 +97,7 @@ function notionPageToBlogPost(page: NotionPage, content: string): BlogPost {
 
 // Obtener todos los posts del blog
 export async function getBlogPosts(
-  category?: "personal" | "electric-automatic"
+  category?: "personal" | "startup"
 ): Promise<BlogPost[]> {
   try {
     const databaseId = process.env.NOTION_DATABASE_ID;
@@ -103,31 +105,36 @@ export async function getBlogPosts(
       throw new Error("NOTION_DATABASE_ID no está configurado");
     }
 
-    const filter: any = {
+    // Construir filtro base
+    const publishedFilter = {
       property: "Publicado",
       checkbox: {
         equals: true,
       },
     };
 
-    // Agregar filtro de categoría si se especifica
+    // Construir filtro final
+    let finalFilter;
     if (category) {
-      const categoryName =
-        category === "electric-automatic" ? "Electric Automatic" : "Personal";
-      filter.and = [
-        filter,
-        {
-          property: "Categoría",
-          select: {
-            equals: categoryName,
+      const categoryName = category === "startup" ? "Startup" : "Personal";
+      finalFilter = {
+        and: [
+          publishedFilter,
+          {
+            property: "Categoría",
+            select: {
+              equals: categoryName,
+            },
           },
-        },
-      ];
+        ],
+      };
+    } else {
+      finalFilter = publishedFilter;
     }
 
     const response = await notion.databases.query({
       database_id: databaseId,
-      filter: category ? { and: [filter] } : filter,
+      filter: finalFilter,
       sorts: [
         {
           property: "Fecha",
@@ -141,8 +148,12 @@ export async function getBlogPosts(
     for (const page of response.results) {
       try {
         const mdblocks = await n2m.pageToMarkdown(page.id);
-        const mdString = n2m.toMarkdownString(mdblocks);
-        const post = notionPageToBlogPost(page as NotionPage, mdString.parent);
+        const mdStringObject = n2m.toMarkdownString(mdblocks);
+        const content =
+          typeof mdStringObject === "string"
+            ? mdStringObject
+            : mdStringObject.parent || "";
+        const post = notionPageToBlogPost(page as NotionPage, content);
         posts.push(post);
       } catch (error) {
         console.error(`Error procesando página ${page.id}:`, error);
