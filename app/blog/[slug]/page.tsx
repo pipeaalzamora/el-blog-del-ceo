@@ -70,7 +70,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       backLink: "/blog/personal",
     },
     startup: {
-      label: "Startup",
+      label: "Emprendimiento",
       color: "bg-primary/10 text-primary",
       bgColor: "bg-muted/50",
       textColor: "text-primary",
@@ -251,7 +251,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
               {post.category === "personal"
                 ? "Comparte tus reflexiones y sígueme para más contenido sobre liderazgo y emprendimiento."
-                : "Descubre más sobre innovación tecnológica y las últimas tendencias de mi startup."}
+                : "Descubre más sobre innovación tecnológica y emprendimiento exitoso."}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -260,16 +260,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               >
                 Ver más artículos
               </Link>
-              {post.category === "startup" && (
-                <a
-                  href="https://www.electricautomaticchile.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
-                >
-                  Conocer nuestros servicios
-                </a>
-              )}
             </div>
           </div>
         </div>
