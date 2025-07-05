@@ -4,9 +4,9 @@ import BlogCard from "@/components/BlogCard";
 import { Building2, Zap, ExternalLink, Lightbulb } from "lucide-react";
 
 export const metadata = {
-  title: "Startup - El Blog del CEO",
+  title: "Blog de Emprendimiento - El Blog del CEO",
   description:
-    "Insights sobre innovación tecnológica, emprendimiento y el desarrollo de soluciones disruptivas.",
+    "Insights sobre emprendimiento, innovación tecnológica y el desarrollo de startups exitosas.",
 };
 
 export default async function StartupBlogPage() {
@@ -25,21 +25,12 @@ export default async function StartupBlogPage() {
               </div>
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Blog del CEO & FOUNDER
+              Blog de Emprendimiento
             </h1>
             <p className="text-xl text-primary-foreground/80 max-w-2xl mx-auto mb-6">
-              Compartiendo insights sobre mi startup, tecnología y el futuro de
-              ellá.
+              Compartiendo insights sobre startups, innovación tecnológica y las
+              lecciones aprendidas en el camino emprendedor.
             </p>
-            <a
-              href="https://www.electricautomaticchile.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 bg-background text-foreground rounded-lg font-medium hover:bg-background/90 transition-colors"
-            >
-              Visitar sitio web
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </a>
           </div>
         </div>
       </section>
@@ -51,7 +42,7 @@ export default async function StartupBlogPage() {
             <>
               <div className="mb-8">
                 <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Insights de la startup
+                  Insights de Emprendimiento
                 </h2>
                 <p className="text-muted-foreground">
                   {posts.length} {posts.length === 1 ? "artículo" : "artículos"}{" "}
@@ -69,15 +60,14 @@ export default async function StartupBlogPage() {
             <div className="text-center py-16">
               <div className="bg-card rounded-xl border p-12 max-w-lg mx-auto">
                 <div className="text-muted-foreground mb-6">
-                  <Building2 className="w-16 h-16 mx-auto" />
+                  <Lightbulb className="w-16 h-16 mx-auto" />
                 </div>
                 <h3 className="text-2xl font-bold text-foreground mb-4">
-                  ¡Pronto tendremos insights de la startup!
+                  ¡Pronto tendremos insights de emprendimiento!
                 </h3>
                 <p className="text-muted-foreground mb-8">
-                  Estamos preparando contenido valioso sobre innovación
-                  tecnológica, emprendimiento y el desarrollo de productos
-                  disruptivos.
+                  Estamos preparando contenido valioso sobre emprendimiento,
+                  innovación tecnológica y el desarrollo de startups exitosas.
                 </p>
                 <div className="space-y-4">
                   <div className="bg-primary/10 p-4 rounded-lg border">
@@ -85,10 +75,10 @@ export default async function StartupBlogPage() {
                       Próximos temas:
                     </h4>
                     <ul className="text-muted-foreground text-sm space-y-1">
-                      <li>• Tendencias en tecnología emergente</li>
                       <li>• Estrategias de crecimiento startup</li>
                       <li>• Desarrollo de productos digitales</li>
                       <li>• Captación de inversión</li>
+                      <li>• Tendencias en tecnología emergente</li>
                     </ul>
                   </div>
                 </div>
