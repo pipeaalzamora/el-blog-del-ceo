@@ -12,6 +12,9 @@ export interface BlogPost {
   featured: boolean;
   coverImage?: string;
   readingTime: number;
+  views: number;
+  publishedUrl?: string;
+  isPublished: boolean;
 }
 
 export interface BlogMetadata {
