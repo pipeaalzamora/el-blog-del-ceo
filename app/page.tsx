@@ -35,7 +35,7 @@ export default async function Home() {
                 className="inline-flex items-center px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors"
               >
                 <Building2 className="w-5 h-5 mr-2" />
-                El blog de la startup
+                Blog de Emprendimiento
               </Link>
             </div>
           </div>
