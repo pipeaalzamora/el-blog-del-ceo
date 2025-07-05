@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:quiet": "set NODE_OPTIONS=--no-deprecation && next dev --turbopack",
     "build": "next build",
+    "build:quiet": "set NODE_OPTIONS=--no-deprecation && next build",
     "start": "next start",
     "lint": "next lint"
   },
@@ -14,6 +16,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^2.30.0",
+    "dotenv": "^16.3.1",
     "lucide-react": "^0.468.0",
     "next": "15.3.4",
     "next-themes": "^0.4.6",
