@@ -11,15 +11,20 @@ const n2m = new NotionToMarkdown({ notionClient: notion });
 
 // Función para obtener el valor de una propiedad de Notion
 function getPropertyValue(property: any): any {
+  // Si la propiedad no existe o es null/undefined, retornar valor por defecto
+  if (!property || !property.type) {
+    return "";
+  }
+
   switch (property.type) {
     case "title":
-      return property.title[0]?.plain_text || "";
+      return property.title?.[0]?.plain_text || "";
     case "rich_text":
-      return property.rich_text[0]?.plain_text || "";
+      return property.rich_text?.[0]?.plain_text || "";
     case "select":
       return property.select?.name || "";
     case "multi_select":
-      return property.multi_select.map((item: any) => item.name) || [];
+      return property.multi_select?.map((item: any) => item.name) || [];
     case "date":
       return property.date?.start || "";
     case "checkbox":
@@ -30,6 +35,14 @@ function getPropertyValue(property: any): any {
       return property.url || "";
     case "email":
       return property.email || "";
+    case "people":
+      return (
+        property.people
+          ?.map((person: any) => person.name || "Usuario")
+          .join(", ") || ""
+      );
+    case "status":
+      return property.status?.name || "";
     default:
       return "";
   }
@@ -39,61 +52,113 @@ function getPropertyValue(property: any): any {
 function notionPageToBlogPost(page: NotionPage, content: string): BlogPost {
   const properties = page.properties;
 
-  const title = getPropertyValue(
-    properties.Título || properties.Title || properties.title
-  );
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, "")
-    .replace(/\s+/g, "-")
-    .trim();
+  try {
+    // Campos obligatorios según la estructura definida
+    const titulo = getPropertyValue(properties.Titulo) || "Sin título";
+    const estado = getPropertyValue(properties.Estado) || "Borrador";
+    const categoria = getPropertyValue(properties.Categoria) || "Personal";
+    const fecha = getPropertyValue(properties.Fecha) || page.created_time;
+    const autor = getPropertyValue(properties.Autor) || "CEO";
 
-  const excerpt = getPropertyValue(
-    properties.Resumen || properties.Excerpt || properties.excerpt
-  );
-  const category = getPropertyValue(
-    properties.Categoría || properties.Category || properties.category
-  );
-  const tags = getPropertyValue(properties.Tags || properties.tags);
-  const featured = getPropertyValue(
-    properties.Destacado || properties.Featured || properties.featured
-  );
-  const author =
-    getPropertyValue(
-      properties.Autor || properties.Author || properties.author
-    ) || "CEO";
+    // Campos opcionales según la estructura definida
+    const resumen = getPropertyValue(properties.Resumen) || "";
+    const tags = getPropertyValue(properties.Tags) || [];
+    const destacado = getPropertyValue(properties.Destacado) || false;
+    const vistas = getPropertyValue(properties.Vistas) || 0;
+    const urlOriginal = getPropertyValue(properties.URL_Original) || "";
 
-  // Calcular tiempo de lectura estimado (250 palabras por minuto)
-  const safeContent = content || "";
-  const wordCount = safeContent
-    .split(/\s+/)
-    .filter((word) => word.length > 0).length;
-  const readingTime = Math.max(1, Math.ceil(wordCount / 250));
+    // Generar slug del título
+    const slug = titulo
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // Remover acentos
+      .replace(/[^a-z0-9\s]/g, "")
+      .replace(/\s+/g, "-")
+      .trim();
 
-  // Obtener imagen de portada
-  let coverImage = "";
-  if (page.cover) {
-    coverImage =
-      page.cover.type === "file"
-        ? page.cover.file?.url || ""
-        : page.cover.external?.url || "";
+    // Generar excerpt
+    const excerpt =
+      resumen ||
+      (content
+        ? content
+            .split("\n")
+            .find((line) => line.trim().length > 0)
+            ?.substring(0, 150) + "..."
+        : "");
+
+    // Determinar si está publicado
+    const isPublished = estado === "Publicado";
+
+    // Determinar si es destacado (checkbox o muchas vistas)
+    const featured = destacado || vistas > 100;
+
+    // Calcular tiempo de lectura estimado (250 palabras por minuto)
+    const safeContent = content || "";
+    const wordCount = safeContent
+      .split(/\s+/)
+      .filter((word) => word.length > 0).length;
+    const readingTime = Math.max(1, Math.ceil(wordCount / 250));
+
+    // Obtener imagen de portada
+    let coverImage = "";
+    if (page.cover) {
+      coverImage =
+        page.cover.type === "file"
+          ? page.cover.file?.url || ""
+          : page.cover.external?.url || "";
+    }
+
+    // Mapear categoría a los valores esperados por la aplicación
+    let mappedCategory: "personal" | "startup" = "personal";
+    if (categoria === "Emprendimiento") {
+      mappedCategory = "startup";
+    } else if (categoria === "Personal") {
+      mappedCategory = "personal";
+    }
+
+    return {
+      id: page.id,
+      title: titulo,
+      slug,
+      excerpt,
+      content,
+      publishedAt: fecha,
+      updatedAt: page.last_edited_time,
+      author: autor,
+      category: mappedCategory,
+      tags: Array.isArray(tags) ? tags : [],
+      featured,
+      coverImage,
+      readingTime,
+      views: vistas,
+      publishedUrl: urlOriginal,
+      isPublished,
+    };
+  } catch (error) {
+    console.error(
+      `Error procesando propiedades de la página ${page.id}:`,
+      error
+    );
+    // Retornar un objeto básico para evitar que falle completamente
+    return {
+      id: page.id,
+      title: "Post sin título",
+      slug: `post-${page.id}`,
+      excerpt: "Contenido no disponible",
+      content: content || "",
+      publishedAt: page.created_time,
+      updatedAt: page.last_edited_time,
+      author: "CEO",
+      category: "personal",
+      tags: [],
+      featured: false,
+      coverImage: "",
+      readingTime: 1,
+      views: 0,
+      publishedUrl: "",
+      isPublished: false,
+    };
   }
-
-  return {
-    id: page.id,
-    title,
-    slug,
-    excerpt,
-    content,
-    publishedAt: page.created_time,
-    updatedAt: page.last_edited_time,
-    author,
-    category: category === "Startup" ? "startup" : "personal",
-    tags,
-    featured,
-    coverImage,
-    readingTime,
-  };
 }
 
 // Función interna para obtener posts (sin cache)
@@ -106,23 +171,24 @@ async function _getBlogPosts(
       throw new Error("NOTION_DATABASE_ID no está configurado");
     }
 
-    // Construir filtro base
+    // Filtro base: solo posts publicados
     const publishedFilter = {
-      property: "Publicado",
-      checkbox: {
-        equals: true,
+      property: "Estado",
+      select: {
+        equals: "Publicado",
       },
     };
 
     // Construir filtro final
     let finalFilter;
     if (category) {
-      const categoryName = category === "startup" ? "Startup" : "Personal";
+      const categoryName =
+        category === "startup" ? "Emprendimiento" : "Personal";
       finalFilter = {
         and: [
           publishedFilter,
           {
-            property: "Categoría",
+            property: "Categoria",
             select: {
               equals: categoryName,
             },
@@ -133,7 +199,8 @@ async function _getBlogPosts(
       finalFilter = publishedFilter;
     }
 
-    const response = await notion.databases.query({
+    // Construir la consulta
+    const queryOptions: any = {
       database_id: databaseId,
       filter: finalFilter,
       sorts: [
@@ -142,7 +209,9 @@ async function _getBlogPosts(
           direction: "descending",
         },
       ],
-    });
+    };
+
+    const response = await notion.databases.query(queryOptions);
 
     const posts: BlogPost[] = [];
 
@@ -155,7 +224,11 @@ async function _getBlogPosts(
             ? mdStringObject
             : mdStringObject.parent || "";
         const post = notionPageToBlogPost(page as NotionPage, content);
-        posts.push(post);
+
+        // Solo incluir posts que están realmente publicados
+        if (post.isPublished) {
+          posts.push(post);
+        }
       } catch (error) {
         console.error(`Error procesando página ${page.id}:`, error);
       }
