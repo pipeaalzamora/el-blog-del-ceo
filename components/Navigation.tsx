@@ -23,7 +23,7 @@ export default function Navigation() {
     },
     {
       href: "/blog/startup",
-      label: "Blog de la startup",
+      label: "Blog de Emprendimiento",
       icon: Building2,
     },
   ];

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BlogPost } from "@/lib/types";
-import { Calendar, Clock, User, ArrowRight } from "lucide-react";
+import { Calendar, Clock, User, ArrowRight, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -16,7 +16,7 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
       color: "bg-blue-100 text-blue-800",
     },
     startup: {
-      label: "Startup",
+      label: "Emprendimiento",
       color: "bg-orange-100 text-orange-800",
     },
   };
@@ -56,6 +56,12 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
               <Clock className="w-4 h-4 mr-1" />
               {post.readingTime} min
             </span>
+            {post.views > 0 && (
+              <span className="flex items-center">
+                <Eye className="w-4 h-4 mr-1" />
+                {post.views}
+              </span>
+            )}
           </div>
         </div>
 
