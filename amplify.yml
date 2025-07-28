@@ -6,6 +6,7 @@ frontend:
         - npm ci
     build:
       commands:
+        - env | grep -e NOTION_TOKEN -e NOTION_DATABASE_ID -e WEBHOOK_SECRET -e NEXT_PUBLIC_SITE_URL > .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
