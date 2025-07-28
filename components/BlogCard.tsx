@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { BlogPost } from "@/lib/types";
 import { Calendar, Clock, User, ArrowRight, Eye } from "lucide-react";
 import { format } from "date-fns";
@@ -32,10 +33,13 @@ export default function BlogCard({ post, featured = false }: BlogCardProps) {
         <div
           className={`relative overflow-hidden ${featured ? "h-64" : "h-48"}`}
         >
-          <img
+          <Image
             src={post.coverImage}
             alt={post.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={featured}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
         </div>
