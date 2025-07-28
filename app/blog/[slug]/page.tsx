@@ -1,10 +1,10 @@
 import { getBlogPostBySlug, getBlogPosts } from "@/lib/notion";
-import { BlogPost } from "@/lib/types";
 import { notFound } from "next/navigation";
 import { Calendar, Clock, User, Tag, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import Link from "next/link";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -86,10 +86,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
       <article>
         {post.coverImage ? (
           <div className="relative h-96 bg-black">
-            <img
+            <Image
               src={post.coverImage}
               alt={post.title}
-              className="w-full h-full object-cover opacity-80"
+              fill
+              className="object-cover opacity-80"
+              sizes="100vw"
+              priority
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-8">
