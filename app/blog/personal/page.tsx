@@ -1,7 +1,6 @@
 import { getBlogPosts } from "@/lib/notion";
-import { BlogPost } from "@/lib/types";
 import BlogCard from "@/components/BlogCard";
-import { User, Calendar, MessageCircle } from "lucide-react";
+import { User, MessageCircle } from "lucide-react";
 
 export const metadata = {
   title: "Blog Personal - El Blog del CEO",
