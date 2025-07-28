@@ -1,5 +1,6 @@
 import { getBlogPosts } from "@/lib/notion";
 import BlogCard from "@/components/BlogCard";
+import Pagination from "@/components/Pagination";
 import { User, MessageCircle } from "lucide-react";
 
 export const metadata = {
@@ -8,9 +9,28 @@ export const metadata = {
     "Reflexiones personales sobre liderazgo, crecimiento profesional y emprendimiento.",
 };
 
-export default async function PersonalBlogPage() {
+interface PersonalBlogPageProps {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}
+
+export default async function PersonalBlogPage({
+  searchParams,
+}: PersonalBlogPageProps) {
+  const { page } = await searchParams;
+  const currentPage = page ? parseInt(page) : 1;
+  const postsPerPage = 9; // 3x3 grid
+
   // Obtener posts de la categoría personal
-  const posts = await getBlogPosts("personal");
+  const allPosts = await getBlogPosts("personal");
+
+  // Calcular paginación
+  const totalPosts = allPosts.length;
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const posts = allPosts.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,8 +64,10 @@ export default async function PersonalBlogPage() {
                   Todas las publicaciones
                 </h2>
                 <p className="text-muted-foreground">
-                  {posts.length}{" "}
-                  {posts.length === 1 ? "publicación" : "publicaciones"}
+                  {totalPosts}{" "}
+                  {totalPosts === 1 ? "publicación" : "publicaciones"}
+                  {totalPages > 1 &&
+                    ` • Página ${currentPage} de ${totalPages}`}
                 </p>
               </div>
 
@@ -54,6 +76,17 @@ export default async function PersonalBlogPage() {
                   <BlogCard key={post.id} post={post} />
                 ))}
               </div>
+
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="mt-12">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    baseUrl="/blog/personal"
+                  />
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-16">

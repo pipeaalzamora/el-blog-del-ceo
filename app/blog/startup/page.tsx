@@ -1,5 +1,6 @@
 import { getBlogPosts } from "@/lib/notion";
 import BlogCard from "@/components/BlogCard";
+import Pagination from "@/components/Pagination";
 import { Building2, Lightbulb } from "lucide-react";
 
 export const metadata = {
@@ -8,9 +9,28 @@ export const metadata = {
     "Insights sobre emprendimiento, innovación tecnológica y el desarrollo de startups exitosas.",
 };
 
-export default async function StartupBlogPage() {
+interface StartupBlogPageProps {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}
+
+export default async function StartupBlogPage({
+  searchParams,
+}: StartupBlogPageProps) {
+  const { page } = await searchParams;
+  const currentPage = page ? parseInt(page) : 1;
+  const postsPerPage = 9; // 3x3 grid
+
   // Obtener posts de la categoría startup
-  const posts = await getBlogPosts("startup");
+  const allPosts = await getBlogPosts("startup");
+
+  // Calcular paginación
+  const totalPosts = allPosts.length;
+  const totalPages = Math.ceil(totalPosts / postsPerPage);
+  const startIndex = (currentPage - 1) * postsPerPage;
+  const endIndex = startIndex + postsPerPage;
+  const posts = allPosts.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen bg-background">
@@ -44,8 +64,10 @@ export default async function StartupBlogPage() {
                   Insights de Emprendimiento
                 </h2>
                 <p className="text-muted-foreground">
-                  {posts.length} {posts.length === 1 ? "artículo" : "artículos"}{" "}
+                  {totalPosts} {totalPosts === 1 ? "artículo" : "artículos"}{" "}
                   sobre innovación y emprendimiento
+                  {totalPages > 1 &&
+                    ` • Página ${currentPage} de ${totalPages}`}
                 </p>
               </div>
 
@@ -54,6 +76,17 @@ export default async function StartupBlogPage() {
                   <BlogCard key={post.id} post={post} />
                 ))}
               </div>
+
+              {/* Paginación */}
+              {totalPages > 1 && (
+                <div className="mt-12">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    baseUrl="/blog/startup"
+                  />
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-16">
