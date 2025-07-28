@@ -27,7 +27,17 @@ export interface BlogMetadata {
 export interface NotionPageProperty {
   id: string;
   type: string;
-  [key: string]: any;
+  title?: Array<{ plain_text: string }>;
+  rich_text?: Array<{ plain_text: string }>;
+  select?: { name: string };
+  multi_select?: Array<{ name: string }>;
+  date?: { start: string };
+  checkbox?: boolean;
+  number?: number;
+  url?: string;
+  email?: string;
+  people?: Array<{ name: string }>;
+  status?: { name: string };
 }
 
 export interface NotionPage {

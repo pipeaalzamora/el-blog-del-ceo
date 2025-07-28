@@ -1,6 +1,6 @@
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
-import { BlogPost, NotionPage } from "./types";
+import { BlogPost, NotionPage, NotionPageProperty } from "./types";
 import { unstable_cache } from "next/cache";
 
 const notion = new Client({
@@ -10,7 +10,9 @@ const notion = new Client({
 const n2m = new NotionToMarkdown({ notionClient: notion });
 
 // Función para obtener el valor de una propiedad de Notion
-function getPropertyValue(property: any): any {
+function getPropertyValue(
+  property: NotionPageProperty | null | undefined
+): string | string[] | number | boolean {
   // Si la propiedad no existe o es null/undefined, retornar valor por defecto
   if (!property || !property.type) {
     return "";
@@ -24,7 +26,7 @@ function getPropertyValue(property: any): any {
     case "select":
       return property.select?.name || "";
     case "multi_select":
-      return property.multi_select?.map((item: any) => item.name) || [];
+      return property.multi_select?.map((item) => item.name) || [];
     case "date":
       return property.date?.start || "";
     case "checkbox":
@@ -37,9 +39,8 @@ function getPropertyValue(property: any): any {
       return property.email || "";
     case "people":
       return (
-        property.people
-          ?.map((person: any) => person.name || "Usuario")
-          .join(", ") || ""
+        property.people?.map((person) => person.name || "Usuario").join(", ") ||
+        ""
       );
     case "status":
       return property.status?.name || "";
@@ -54,18 +55,23 @@ function notionPageToBlogPost(page: NotionPage, content: string): BlogPost {
 
   try {
     // Campos obligatorios según la estructura definida
-    const titulo = getPropertyValue(properties.Titulo) || "Sin título";
-    const estado = getPropertyValue(properties.Estado) || "Borrador";
-    const categoria = getPropertyValue(properties.Categoria) || "Personal";
-    const fecha = getPropertyValue(properties.Fecha) || page.created_time;
-    const autor = getPropertyValue(properties.Autor) || "CEO";
+    const titulo = String(getPropertyValue(properties.Titulo) || "Sin título");
+    const estado = String(getPropertyValue(properties.Estado) || "Borrador");
+    const categoria = String(
+      getPropertyValue(properties.Categoria) || "Personal"
+    );
+    const fecha = String(
+      getPropertyValue(properties.Fecha) || page.created_time
+    );
+    const autor = String(getPropertyValue(properties.Autor) || "CEO");
 
     // Campos opcionales según la estructura definida
-    const resumen = getPropertyValue(properties.Resumen) || "";
-    const tags = getPropertyValue(properties.Tags) || [];
-    const destacado = getPropertyValue(properties.Destacado) || false;
-    const vistas = getPropertyValue(properties.Vistas) || 0;
-    const urlOriginal = getPropertyValue(properties.URL_Original) || "";
+    const resumen = String(getPropertyValue(properties.Resumen) || "");
+    const tagsValue = getPropertyValue(properties.Tags);
+    const tags = Array.isArray(tagsValue) ? tagsValue : [];
+    const destacado = Boolean(getPropertyValue(properties.Destacado) || false);
+    const vistas = Number(getPropertyValue(properties.Vistas) || 0);
+    const urlOriginal = String(getPropertyValue(properties.URL_Original) || "");
 
     // Generar slug del título
     const slug = titulo
@@ -200,13 +206,13 @@ async function _getBlogPosts(
     }
 
     // Construir la consulta
-    const queryOptions: any = {
+    const queryOptions = {
       database_id: databaseId,
       filter: finalFilter,
       sorts: [
         {
           property: "Fecha",
-          direction: "descending",
+          direction: "descending" as const,
         },
       ],
     };
@@ -278,6 +284,35 @@ export async function getRecentPosts(limit: number = 5): Promise<BlogPost[]> {
     return posts.slice(0, limit);
   } catch (error) {
     console.error("Error obteniendo posts recientes:", error);
+    return [];
+  }
+}
+
+// Buscar posts por query
+export async function searchPosts(query: string): Promise<BlogPost[]> {
+  try {
+    if (!query.trim()) {
+      return await getBlogPosts();
+    }
+
+    const posts = await getBlogPosts();
+    const searchTerm = query.toLowerCase().trim();
+
+    return posts.filter((post) => {
+      const titleMatch = post.title.toLowerCase().includes(searchTerm);
+      const excerptMatch = post.excerpt.toLowerCase().includes(searchTerm);
+      const contentMatch = post.content.toLowerCase().includes(searchTerm);
+      const tagsMatch = post.tags.some((tag) =>
+        tag.toLowerCase().includes(searchTerm)
+      );
+      const authorMatch = post.author.toLowerCase().includes(searchTerm);
+
+      return (
+        titleMatch || excerptMatch || contentMatch || tagsMatch || authorMatch
+      );
+    });
+  } catch (error) {
+    console.error("Error buscando posts:", error);
     return [];
   }
 }
