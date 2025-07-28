@@ -141,7 +141,9 @@ export default function SearchPage() {
             {query && (
               <p className="text-muted-foreground">
                 Buscando:{" "}
-                <span className="font-medium text-foreground">"{query}"</span>
+                <span className="font-medium text-foreground">
+                  &quot;{query}&quot;
+                </span>
                 {category !== "all" && (
                   <span>
                     {" "}
