@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Building2, Menu, X, Search } from "lucide-react";
+import { Home, User, Building2, Menu, X, Search, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -17,13 +17,18 @@ export default function Navigation() {
       icon: Home,
     },
     {
+      href: "/blog",
+      label: "Blog",
+      icon: BookOpen,
+    },
+    {
       href: "/blog/personal",
-      label: "Blog Personal",
+      label: "Personal",
       icon: User,
     },
     {
       href: "/blog/startup",
-      label: "Blog de Emprendimiento",
+      label: "Emprendimiento",
       icon: Building2,
     },
     {
