@@ -1,7 +1,6 @@
 import { getBlogPosts } from "@/lib/notion";
-import { BlogPost } from "@/lib/types";
 import BlogCard from "@/components/BlogCard";
-import { Building2, Zap, ExternalLink, Lightbulb } from "lucide-react";
+import { Building2, Lightbulb } from "lucide-react";
 
 export const metadata = {
   title: "Blog de Emprendimiento - El Blog del CEO",
