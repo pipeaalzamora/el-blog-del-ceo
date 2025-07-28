@@ -76,7 +76,7 @@ export default async function Home() {
               href="/blog"
               className="inline-flex items-center text-primary hover:text-primary/80 font-medium"
             >
-              Ver todos
+              Ver todos los posts
               <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
           </div>
