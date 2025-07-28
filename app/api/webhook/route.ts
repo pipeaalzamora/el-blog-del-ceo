@@ -6,23 +6,27 @@ const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "default-secret";
 
 export async function POST(request: NextRequest) {
   try {
-    // Validar el secret del webhook
-    const authHeader = request.headers.get("authorization");
-    if (authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     console.log("Webhook recibido:", body);
 
+    // Verificar si es un evento de verificación de Notion
+    if (body.type === "url_verification") {
+      console.log("Verificación de URL recibida:", body.challenge);
+      return NextResponse.json({ challenge: body.challenge });
+    }
+
+    // Validar el secret del webhook para eventos reales
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
+      console.log("Autorización fallida. Header recibido:", authHeader);
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Procesar evento real de Notion
+    console.log("Evento de Notion procesado:", body);
+
     // Revalidar todas las rutas relacionadas con blog
     revalidateTag("blog-posts");
-
-    // También podemos usar revalidatePath para rutas específicas
-    // revalidatePath('/');
-    // revalidatePath('/blog');
-    // revalidatePath('/blog/personal');
-    // revalidatePath('/blog/startup');
 
     return NextResponse.json({
       message: "Revalidation triggered successfully",
