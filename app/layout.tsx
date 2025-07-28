@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body
@@ -57,6 +60,9 @@ export default function RootLayout({
           <main className="flex-grow">{children}</main>
           <Footer />
         </ThemeProvider>
+        {GA_MEASUREMENT_ID && (
+          <GoogleAnalytics GA_MEASUREMENT_ID={GA_MEASUREMENT_ID} />
+        )}
       </body>
     </html>
   );

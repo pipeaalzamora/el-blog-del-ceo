@@ -1,5 +1,4 @@
 import { getFeaturedPosts, getRecentPosts } from "@/lib/notion";
-import { BlogPost } from "@/lib/types";
 import BlogCard from "@/components/BlogCard";
 import Link from "next/link";
 import { ArrowRight, Star, Clock, Building2, User } from "lucide-react";
