@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Comments from "@/components/Comments";
 
 interface BlogPostPageProps {
   params: Promise<{
@@ -264,6 +265,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 Ver más artículos
               </Link>
             </div>
+          </div>
+        </div>
+
+        {/* Comentarios */}
+        <div className="bg-background py-12">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <Comments postId={post.id} />
           </div>
         </div>
       </article>
