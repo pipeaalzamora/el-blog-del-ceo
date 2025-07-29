@@ -1,138 +1,178 @@
-import { Comment, NewsletterSubscriber } from "./types";
-
-// Función para verificar si estamos en el navegador
-const isBrowser = typeof window !== "undefined";
-
-// Función para obtener datos de localStorage
-function getFromStorage(key: string): any {
-  if (!isBrowser) return null;
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  } catch {
-    return null;
-  }
-}
-
-// Función para guardar datos en localStorage
-function setToStorage(key: string, value: any): void {
-  if (!isBrowser) return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-  } catch (error) {
-    console.error("Error guardando en localStorage:", error);
-  }
-}
+import connectDB from "./mongodb";
+import Comment from "./models/Comment";
+import NewsletterSubscriber from "./models/NewsletterSubscriber";
+import {
+  Comment as CommentType,
+  NewsletterSubscriber as NewsletterSubscriberType,
+} from "./types";
 
 // Comentarios
 export async function addComment(
-  comment: Omit<Comment, "id" | "createdAt" | "isApproved">
-): Promise<Comment> {
-  const id = `comment:${Date.now()}:${Math.random().toString(36).substr(2, 9)}`;
-  const newComment: Comment = {
-    ...comment,
-    id,
-    createdAt: new Date().toISOString(),
-    isApproved: true, // Por ahora aprobamos todos, después podemos agregar moderación
-  };
+  comment: Omit<CommentType, "id" | "createdAt" | "isApproved">
+): Promise<CommentType> {
+  try {
+    await connectDB();
 
-  // Guardar en localStorage
-  const key = `post:${comment.postId}:comments`;
-  const existingComments = getFromStorage(key) || {};
-  existingComments[id] = newComment;
-  setToStorage(key, existingComments);
+    const newComment = new Comment({
+      postId: comment.postId,
+      nickname: comment.nickname,
+      content: comment.content,
+    });
 
-  return newComment;
+    const savedComment = await newComment.save();
+
+    return {
+      id: savedComment._id.toString(),
+      postId: savedComment.postId,
+      nickname: savedComment.nickname,
+      content: savedComment.content,
+      createdAt: savedComment.createdAt.toISOString(),
+      isApproved: savedComment.isApproved,
+    };
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    throw new Error("Failed to add comment");
+  }
 }
 
-export async function getComments(postId: string): Promise<Comment[]> {
-  // Obtener de localStorage
-  const key = `post:${postId}:comments`;
-  const comments = getFromStorage(key) || {};
+export async function getComments(postId: string): Promise<CommentType[]> {
+  try {
+    await connectDB();
 
-  const commentsArray = Object.values(comments) as any[];
-  return commentsArray
-    .filter((comment: any) => comment && comment.isApproved)
-    .sort(
-      (a: any, b: any) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    const comments = await Comment.find({
+      postId,
+      isApproved: true,
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return comments.map((comment: Record<string, unknown>) => ({
+      id: (comment._id as { toString(): string }).toString(),
+      postId: comment.postId as string,
+      nickname: comment.nickname as string,
+      content: comment.content as string,
+      createdAt: (comment.createdAt as Date).toISOString(),
+      isApproved: comment.isApproved as boolean,
+    }));
+  } catch (error) {
+    console.error("Error getting comments:", error);
+    return [];
+  }
 }
 
 // Newsletter
 export async function addSubscriber(
   email: string,
   categories: ("personal" | "startup" | "all")[]
-): Promise<NewsletterSubscriber> {
-  const id = `subscriber:${Date.now()}:${Math.random().toString(36).substr(2, 9)}`;
-  const subscriber: NewsletterSubscriber = {
-    id,
-    email,
-    categories,
-    isActive: true,
-    subscribedAt: new Date().toISOString(),
-  };
+): Promise<NewsletterSubscriberType> {
+  try {
+    await connectDB();
 
-  // Guardar en localStorage
-  const key = "newsletter:subscribers";
-  const existingSubscribers = getFromStorage(key) || {};
-  existingSubscribers[email] = subscriber;
-  setToStorage(key, existingSubscribers);
+    // Verificar si ya existe
+    const existingSubscriber = await NewsletterSubscriber.findOne({ email });
 
-  return subscriber;
+    if (existingSubscriber) {
+      // Actualizar categorías si ya existe
+      existingSubscriber.categories = categories;
+      existingSubscriber.isActive = true;
+      await existingSubscriber.save();
+
+      return {
+        id: existingSubscriber._id.toString(),
+        email: existingSubscriber.email,
+        categories: existingSubscriber.categories,
+        isActive: existingSubscriber.isActive,
+        subscribedAt: existingSubscriber.subscribedAt.toISOString(),
+      };
+    }
+
+    const newSubscriber = new NewsletterSubscriber({
+      email,
+      categories,
+    });
+
+    const savedSubscriber = await newSubscriber.save();
+
+    return {
+      id: savedSubscriber._id.toString(),
+      email: savedSubscriber.email,
+      categories: savedSubscriber.categories,
+      isActive: savedSubscriber.isActive,
+      subscribedAt: savedSubscriber.subscribedAt.toISOString(),
+    };
+  } catch (error) {
+    console.error("Error adding subscriber:", error);
+    throw new Error("Failed to add subscriber");
+  }
 }
 
 export async function getSubscribers(
   category?: "personal" | "startup" | "all"
-): Promise<NewsletterSubscriber[]> {
-  // Obtener de localStorage
-  const key = "newsletter:subscribers";
-  const subscribers = getFromStorage(key) || {};
+): Promise<NewsletterSubscriberType[]> {
+  try {
+    await connectDB();
 
-  const subscribersArray = Object.values(subscribers) as any[];
-  const allSubscribers = subscribersArray.filter(
-    (subscriber: any) => subscriber && subscriber.isActive
-  );
+    const query: Record<string, unknown> = { isActive: true };
 
-  if (!category) return allSubscribers;
+    if (category) {
+      query.categories = { $in: [category, "all"] };
+    }
 
-  return allSubscribers.filter(
-    (subscriber: any) =>
-      subscriber.categories.includes(category) ||
-      subscriber.categories.includes("all")
-  );
+    const subscribers = await NewsletterSubscriber.find(query).lean();
+
+    return subscribers.map((subscriber: Record<string, unknown>) => ({
+      id: (subscriber._id as { toString(): string }).toString(),
+      email: subscriber.email as string,
+      categories: subscriber.categories as ("personal" | "startup" | "all")[],
+      isActive: subscriber.isActive as boolean,
+      subscribedAt: (subscriber.subscribedAt as Date).toISOString(),
+    }));
+  } catch (error) {
+    console.error("Error getting subscribers:", error);
+    return [];
+  }
 }
 
 export async function unsubscribe(email: string): Promise<boolean> {
-  // Obtener de localStorage
-  const key = "newsletter:subscribers";
-  const subscribers = getFromStorage(key) || {};
+  try {
+    await connectDB();
 
-  if (!subscribers[email]) return false;
+    const subscriber = await NewsletterSubscriber.findOne({ email });
+    if (!subscriber) return false;
 
-  const subscriberData = subscribers[email];
-  subscriberData.isActive = false;
+    subscriber.isActive = false;
+    await subscriber.save();
 
-  subscribers[email] = subscriberData;
-  setToStorage(key, subscribers);
-
-  return true;
-}
-
-// Función para exportar datos (útil para migración)
-export function exportData(): any {
-  return {
-    comments: getFromStorage("comments"),
-    subscribers: getFromStorage("newsletter:subscribers"),
-  };
-}
-
-// Función para importar datos (útil para migración)
-export function importData(data: any): void {
-  if (data.comments) {
-    setToStorage("comments", data.comments);
+    return true;
+  } catch (error) {
+    console.error("Error unsubscribing:", error);
+    return false;
   }
-  if (data.subscribers) {
-    setToStorage("newsletter:subscribers", data.subscribers);
+}
+
+// Función para obtener estadísticas
+export async function getStats() {
+  try {
+    await connectDB();
+
+    const [totalComments, totalSubscribers, activeSubscribers] =
+      await Promise.all([
+        Comment.countDocuments(),
+        NewsletterSubscriber.countDocuments(),
+        NewsletterSubscriber.countDocuments({ isActive: true }),
+      ]);
+
+    return {
+      totalComments,
+      totalSubscribers,
+      activeSubscribers,
+    };
+  } catch (error) {
+    console.error("Error getting stats:", error);
+    return {
+      totalComments: 0,
+      totalSubscribers: 0,
+      activeSubscribers: 0,
+    };
   }
 }

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import { getBlogPostById } from "@/lib/notion";
-import { getSubscribers } from "@/lib/db-mongodb";
+import { getSubscribers } from "@/lib/db";
 import { Resend } from "resend";
+import { BlogPost } from "@/lib/types";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Función para crear el template del email de newsletter
-function createNewsletterEmailTemplate(post: any, subscriberEmail: string) {
+function createNewsletterEmailTemplate(post: BlogPost, subscriberEmail: string) {
   const postUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://elblogdelceo.com"}/blog/${post.slug}`;
 
   return `
@@ -78,17 +79,17 @@ const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "default-secret";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log("Webhook recibido:", body);
+    console.warn("Webhook recibido:", body);
 
     // Verificar si es un evento de verificación de Notion
     if (body.type === "url_verification") {
-      console.log("Verificación de URL recibida:", body.challenge);
+      console.warn("Verificación de URL recibida:", body.challenge);
       return NextResponse.json({ challenge: body.challenge });
     }
 
     // Para eventos reales de Notion, no necesitamos validar Bearer token
     // Notion usa su propio sistema de autenticación
-    console.log("Evento de Notion procesado:", body);
+    console.warn("Evento de Notion procesado:", body);
 
     // Revalidar todas las rutas relacionadas con blog
     revalidateTag("blog-posts");
@@ -99,13 +100,13 @@ export async function POST(request: NextRequest) {
         // Obtener el post actualizado
         const pageId = body.page?.id;
         if (pageId) {
-          console.log("Post actualizado/creado:", pageId);
+          console.warn("Post actualizado/creado:", pageId);
 
           // Obtener el post completo
           const post = await getBlogPostById(pageId);
 
           if (post && post.isPublished) {
-            console.log("Enviando newsletter para post:", post.title);
+            console.warn("Enviando newsletter para post:", post.title);
 
             try {
               // Obtener suscriptores activos
@@ -120,7 +121,7 @@ export async function POST(request: NextRequest) {
               );
 
               if (relevantSubscribers.length === 0) {
-                console.log("No hay suscriptores activos para esta categoría");
+                console.warn("No hay suscriptores activos para esta categoría");
                 return;
               }
 
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
                     );
                     errors.push(`${subscriber.email}: ${error.message}`);
                   } else {
-                    console.log(
+                    console.warn(
                       `Email enviado exitosamente a ${subscriber.email}`
                     );
                     sentCount++;
@@ -169,7 +170,7 @@ export async function POST(request: NextRequest) {
                 }
               }
 
-              console.log(
+              console.warn(
                 `Newsletter enviado: ${sentCount}/${relevantSubscribers.length} emails enviados`
               );
               if (errors.length > 0) {
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
               );
             }
           } else {
-            console.log("Post no encontrado o no publicado:", pageId);
+            console.warn("Post no encontrado o no publicado:", pageId);
           }
         }
       } catch (newsletterError) {

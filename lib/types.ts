@@ -4,15 +4,15 @@ export interface BlogPost {
   slug: string;
   excerpt: string;
   content: string;
-  publishedAt: string;
-  updatedAt: string;
+  publishedAt: string; // ISO date string
+  updatedAt: string; // ISO date string
   author: string;
   category: "personal" | "startup";
   tags: string[];
   featured: boolean;
   coverImage?: string;
-  readingTime: number;
-  views: number;
+  readingTime: number; // in minutes, must be positive
+  views: number; // must be non-negative
   publishedUrl?: string;
   isPublished: boolean;
 }
@@ -63,7 +63,7 @@ export interface Comment {
   postId: string;
   nickname: string;
   content: string;
-  createdAt: string;
+  createdAt: string; // ISO date string
   isApproved: boolean;
 }
 
@@ -72,7 +72,7 @@ export interface NewsletterSubscriber {
   email: string;
   categories: ("personal" | "startup" | "all")[];
   isActive: boolean;
-  subscribedAt: string;
+  subscribedAt: string; // ISO date string
 }
 
 export interface NewsletterEmail {

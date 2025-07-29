@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addSubscriber, unsubscribe } from "@/lib/db-mongodb";
+import { addSubscriber, unsubscribe } from "@/lib/db";
+import { NewsletterSubscriberSchema, UnsubscribeSchema } from "@/lib/validations";
 import { Resend } from "resend";
 import { NewsletterSubscriber } from "@/lib/types";
 
@@ -8,36 +9,25 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, categories } = body;
 
-    // Validaciones
-    if (!email || !categories) {
+    // Validar datos con Zod
+    const validationResult = NewsletterSubscriberSchema.safeParse(body);
+
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Email y categorías son requeridos" },
+        {
+          error: "Datos inválidos",
+          details: validationResult.error.issues.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        },
         { status: 400 }
       );
     }
 
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json({ error: "Email inválido" }, { status: 400 });
-    }
-
-    // Validar categorías
-    const validCategories = ["personal", "startup", "all"];
-    const validSelectedCategories = categories.filter((cat: string) =>
-      validCategories.includes(cat)
-    );
-
-    if (validSelectedCategories.length === 0) {
-      return NextResponse.json(
-        { error: "Debe seleccionar al menos una categoría" },
-        { status: 400 }
-      );
-    }
-
-    const subscriber = await addSubscriber(email, validSelectedCategories);
+    const { email, categories } = validationResult.data;
+    const subscriber = await addSubscriber(email, categories);
 
     // Enviar email de bienvenida directamente
     try {
@@ -148,14 +138,23 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get("email");
 
-    if (!email) {
+    // Validar email con Zod
+    const validationResult = UnsubscribeSchema.safeParse({ email });
+
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Email es requerido" },
+        {
+          error: "Email inválido",
+          details: validationResult.error.issues.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        },
         { status: 400 }
       );
     }
 
-    const success = await unsubscribe(email);
+    const success = await unsubscribe(validationResult.data.email);
 
     if (!success) {
       return NextResponse.json(

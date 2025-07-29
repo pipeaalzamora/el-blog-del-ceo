@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSubscribers } from "@/lib/db-mongodb";
+import { getSubscribers } from "@/lib/db";
 import { Resend } from "resend";
 import { BlogPost } from "@/lib/types";
 
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
           console.error(`Error enviando email a ${subscriber.email}:`, error);
           errors.push(`${subscriber.email}: ${error.message}`);
         } else {
-          console.log(
+          console.warn(
             `Email enviado exitosamente a ${subscriber.email}:`,
             data?.id
           );

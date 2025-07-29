@@ -1,7 +1,7 @@
 import { Client } from "@notionhq/client";
 import { NotionToMarkdown } from "notion-to-md";
 import { BlogPost, NotionPage, NotionPageProperty } from "./types";
-import { unstable_cache } from "next/cache";
+import { blogCache } from "./cache";
 
 const notion = new Client({
   auth: process.env.NOTION_TOKEN,
@@ -247,35 +247,49 @@ async function _getBlogPosts(
   }
 }
 
-// Función pública con cache y revalidación automática
-export const getBlogPosts = unstable_cache(_getBlogPosts, ["blog-posts"], {
-  tags: ["blog-posts"],
-  revalidate: 300, // Revalidar cada 5 minutos automáticamente
-});
+// Función pública con cache mejorado
+export async function getBlogPosts(category?: "personal" | "startup"): Promise<BlogPost[]> {
+  return blogCache.getAllPosts(category);
+}
 
-// Obtener un post específico por slug
+// Actualizar la implementación del cache
+blogCache.getAllPosts = async (category?: string) => {
+  return _getBlogPosts(category as "personal" | "startup" | undefined);
+};
+
+// Obtener un post específico por slug con cache
 export async function getBlogPostBySlug(
   slug: string
 ): Promise<BlogPost | null> {
+  return blogCache.getPost(slug);
+}
+
+// Actualizar la implementación del cache
+blogCache.getPost = async (slug: string) => {
   try {
-    const posts = await getBlogPosts();
+    const posts = await _getBlogPosts();
     return posts.find((post: BlogPost) => post.slug === slug) || null;
   } catch (error) {
     console.error("Error obteniendo post:", error);
     return null;
   }
+};
+
+// Obtener posts destacados con cache
+export async function getFeaturedPosts(): Promise<BlogPost[]> {
+  return blogCache.getFeaturedPosts();
 }
 
-// Obtener posts destacados
-export async function getFeaturedPosts(): Promise<BlogPost[]> {
+// Actualizar la implementación del cache
+blogCache.getFeaturedPosts = async () => {
   try {
-    const posts = await getBlogPosts();
+    const posts = await _getBlogPosts();
     return posts.filter((post: BlogPost) => post.featured).slice(0, 3);
   } catch (error) {
     console.error("Error obteniendo posts destacados:", error);
     return [];
   }
-}
+};
 
 // Obtener posts recientes
 export async function getRecentPosts(limit: number = 5): Promise<BlogPost[]> {

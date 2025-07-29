@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addComment, getComments } from "@/lib/db-mongodb";
+import { addComment, getComments } from "@/lib/db";
+import { CommentSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,29 +28,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { postId, nickname, content } = body;
 
-    // Validaciones básicas
-    if (!postId || !content) {
+    // Validar datos con Zod
+    const validationResult = CommentSchema.safeParse(body);
+
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "postId y content son requeridos" },
+        {
+          error: "Datos inválidos",
+          details: validationResult.error.issues.map(err => ({
+            field: err.path.join('.'),
+            message: err.message
+          }))
+        },
         { status: 400 }
       );
     }
 
-    if (content.length < 3) {
-      return NextResponse.json(
-        { error: "El comentario debe tener al menos 3 caracteres" },
-        { status: 400 }
-      );
-    }
-
-    if (content.length > 1000) {
-      return NextResponse.json(
-        { error: "El comentario no puede exceder 1000 caracteres" },
-        { status: 400 }
-      );
-    }
+    const { postId, nickname, content } = validationResult.data;
 
     // Filtro básico de spam
     const spamWords = ["spam", "casino", "viagra", "loan", "credit"];
@@ -67,7 +63,7 @@ export async function POST(request: NextRequest) {
     const comment = await addComment({
       postId,
       nickname: nickname || "Anónimo",
-      content: content.trim(),
+      content,
     });
 
     return NextResponse.json(comment, { status: 201 });
