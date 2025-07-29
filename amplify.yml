@@ -4,9 +4,9 @@ frontend:
     preBuild:
       commands:
         - npm ci
-    build:
-      commands:
-        - env | grep -e NOTION_TOKEN -e NOTION_DATABASE_ID -e WEBHOOK_SECRET -e NEXT_PUBLIC_SITE_URL > .env.production
+                    build:
+                  commands:
+                    - env | grep -e NOTION_TOKEN -e NOTION_DATABASE_ID -e WEBHOOK_SECRET -e NEXT_PUBLIC_SITE_URL -e RESEND_API_KEY -e MONGODB_URI > .env.production
         - npm run build
   artifacts:
     baseDirectory: .next
