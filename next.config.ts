@@ -1,17 +1,5 @@
 import type { NextConfig } from "next";
 
-// Suprimir warnings de deprecación específicos
-if (typeof process !== "undefined") {
-  const originalEmitWarning = process.emitWarning;
-  process.emitWarning = function (warning, type, code, ...args) {
-    // Suprimir el warning específico de url.parse()
-    if (code === "DEP0169") {
-      return;
-    }
-    return originalEmitWarning.call(this, warning, type, code, ...args);
-  };
-}
-
 const nextConfig: NextConfig = {
   // Configuración optimizada de imágenes
   images: {

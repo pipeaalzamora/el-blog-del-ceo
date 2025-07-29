@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "set NODE_OPTIONS=--no-deprecation && next dev --turbopack",
     "dev:verbose": "next dev --turbopack",
-    "build": "next build",
+    "build": "set NODE_OPTIONS=--no-deprecation && next build",
     "build:verbose": "next build",
     "start": "next start",
     "lint": "next lint"
