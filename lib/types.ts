@@ -57,3 +57,26 @@ export interface NotionPage {
   created_time: string;
   last_edited_time: string;
 }
+
+export interface Comment {
+  id: string;
+  postId: string;
+  nickname: string;
+  content: string;
+  createdAt: string;
+  isApproved: boolean;
+}
+
+export interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  categories: ("personal" | "startup" | "all")[];
+  isActive: boolean;
+  subscribedAt: string;
+}
+
+export interface NewsletterEmail {
+  to: string;
+  subject: string;
+  html: string;
+}

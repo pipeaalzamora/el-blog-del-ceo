@@ -316,3 +316,16 @@ export async function searchPosts(query: string): Promise<BlogPost[]> {
     return [];
   }
 }
+
+// Obtener un post específico por ID
+export async function getBlogPostById(
+  pageId: string
+): Promise<BlogPost | null> {
+  try {
+    const posts = await getBlogPosts();
+    return posts.find((post: BlogPost) => post.id === pageId) || null;
+  } catch (error) {
+    console.error("Error obteniendo post por ID:", error);
+    return null;
+  }
+}
