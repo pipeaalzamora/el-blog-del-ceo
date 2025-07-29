@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Building2, Menu, X, Search, BookOpen } from "lucide-react";
+import { User, Building2, Menu, X, Search, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -11,11 +11,6 @@ export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    {
-      href: "/",
-      label: "Inicio",
-      icon: Home,
-    },
     {
       href: "/blog",
       label: "Blog",
