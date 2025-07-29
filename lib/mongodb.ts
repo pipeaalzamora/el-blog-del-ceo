@@ -9,10 +9,19 @@ if (!MONGODB_URI) {
   );
 }
 
-let cached: any = (global as any).mongoose;
+interface Cached {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
 
-if (!cached) {
-  cached = (global as any).mongoose = { conn: null, promise: null };
+const cached: Cached = (global as unknown as { mongoose?: Cached })
+  .mongoose || {
+  conn: null,
+  promise: null,
+};
+
+if (!(global as unknown as { mongoose?: Cached }).mongoose) {
+  (global as unknown as { mongoose: Cached }).mongoose = cached;
 }
 
 async function connectDB() {

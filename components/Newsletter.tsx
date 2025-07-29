@@ -39,7 +39,7 @@ export default function Newsletter() {
       } else {
         setError(data.error || "Error al suscribirse");
       }
-    } catch (error) {
+    } catch {
       setError("Error de conexión");
     } finally {
       setSubmitting(false);

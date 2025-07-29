@@ -77,7 +77,7 @@ function createNewsletterEmailTemplate(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { post, category } = body;
+    const { post } = body;
 
     if (!post || !post.id || !post.title) {
       return NextResponse.json(

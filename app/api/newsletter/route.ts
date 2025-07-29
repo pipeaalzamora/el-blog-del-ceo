@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addSubscriber, getSubscribers, unsubscribe } from "@/lib/db-mongodb";
+import { addSubscriber, unsubscribe } from "@/lib/db-mongodb";
 import { Resend } from "resend";
 import { NewsletterSubscriber } from "@/lib/types";
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       const fromEmail =
         "El Blog del CEO <newsletter@electricautomaticchile.com>";
 
-      const { data, error } = await resend.emails.send({
+      const { error } = await resend.emails.send({
         from: fromEmail,
         to: subscriber.email,
         subject,

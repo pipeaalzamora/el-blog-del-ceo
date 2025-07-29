@@ -61,7 +61,7 @@ export default function Comments({ postId }: CommentsProps) {
       } else {
         setError("Error al enviar comentario");
       }
-    } catch (error) {
+    } catch {
       setError("Error al enviar comentario");
     } finally {
       setSubmitting(false);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { getBlogPostBySlug, getBlogPostById } from "@/lib/notion";
+import { getBlogPostById } from "@/lib/notion";
 
 // Webhook secret para validar requests (configurar en variables de entorno)
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || "default-secret";
